@@ -1,65 +1,7 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from flask import make_response
+from flask import current_app as app
+from .models import db, CovidStatsCountry, CovidStatsCountryRegion, CovidStatsUs
 import requests
-
-app = Flask(__name__)
-
-app.secret_key = 'shhhh...iAmASecret!'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:''@localhost:3306/covid19'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ECHO'] = True
-
-db = SQLAlchemy(app)
-
-print(db)
-
-# Flask Model for all the countries Covid19 stats from the very first reported case
-class CovidStatsCountry(db.Model):
-    id = db.Column(db.Integer, primary_key=True) 
-    countrycode = db.Column(db.String(15)) 
-    date = db.Column(db.String(10)) 
-    cases = db.Column(db.String(10)) 
-    deaths = db.Column(db.String(10)) 
-    recovered = db.Column(db.String(10)) 
-
-    def __init__(self,countrycode,date,cases,deaths,recovered):
-        self.countrycode=countrycode
-        self.date=date
-        self.cases=cases
-        self.deaths=deaths
-        self.recovered=recovered
-
-# Flask Model for the Covid19 stats of the states of the US
-class CovidStatsUs(db.Model):
-    id = db.Column(db.Integer, primary_key=True) 
-    state = db.Column(db.String(15)) 
-    case = db.Column(db.String(10)) 
-    death = db.Column(db.String(10)) 
-    updated = db.Column(db.String(10)) 
-
-    def __init__(self,state,case,death,updated):
-        self.state=state
-        self.case=case
-        self.death=death
-        self.updated=updated
-
-# Flask Model for the Covid19 stats of overall cases results up to date for all the countries 
-class CovidStatsCountryRegion(db.Model):
-    id = db.Column(db.Integer, primary_key=True) 
-    country_region = db.Column(db.String(15)) 
-    confirmed = db.Column(db.String(10)) 
-    deaths = db.Column(db.String(10)) 
-    recovered = db.Column(db.String(10)) 
-    last_updated = db.Column(db.String(10)) 
-
-    def __init__(self,country_region,confirmed,deaths,recovered,last_updated):
-        self.country_region=country_region
-        self.confirmed=confirmed
-        self.deaths=deaths
-        self.recovered=recovered
-        self.last_updated=last_updated
-
-db.create_all()
 
 # index Route 
 @app.route('/', methods=['GET'])
@@ -72,7 +14,25 @@ def index():
     else:
         return 'Something is broken.'
 
-# FetchData Route 
+# FetchData From Mysql Database Route 
+@app.route('/dbdata', methods=['GET'])
+def dbdata():
+    data=[]
+    allUS_data = CovidStatsUs.query.all()
+    for dat in allUS_data:
+        data.append(dat.state+" "+dat.case+" "+dat.death+" "+dat.updated)
+
+    allCountry_data = CovidStatsCountryRegion.query.all()
+    for dat in allCountry_data:
+        data.append(dat.country_region+" "+dat.confirmed+" "+dat.deaths+" "+dat.recovered+" "+dat.last_updated)
+
+    allCountryStats_data = CovidStatsCountry.query.all()
+    for dat in allCountryStats_data:
+        data.append(dat.countrycode+" "+dat.date+" "+dat.cases+" "+dat.deaths+" "+dat.recovered)
+    
+    return str(data)
+
+# FetchData From API Servers Route 
 @app.route('/fetchdata', methods=['GET'])
 def fetchdata():
 
@@ -143,6 +103,3 @@ def fetchdata():
             <h1>Fetched data from 3 online covid-19 API Servers</h1>
             <p>And stored in local Database(phpmyadmin_Mysql) using Xampp Server.</p>
         """
-
-if __name__ == '__main__':
-    app.run(debug=True)
