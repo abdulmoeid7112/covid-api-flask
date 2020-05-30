@@ -91,8 +91,8 @@ class allCountryStats(Resource):
     def get(self):
         records = [dict({
             "id": dat.id,
-            "countrycode": dat.countrycode,
-            "date": dat.date,
+            "country": dat.country,
+            "tests": dat.tests,
             "cases": dat.cases,
             "deaths": dat.deaths,
             "recovered" : dat.recovered
@@ -106,22 +106,21 @@ api.add_resource(allCountryStats, '/all-country-stats')
 
 # FetchData From API Servers Route Start Here
 class FetchAPIData(Resource):
-    def get(self):
+    def post(self):
         # Api URLs stored in am array
-        URLs=["https://thevirustracker.com/timeline/map-data.json",
+        URLs=["https://corona.lmao.ninja/v2/countries",
         "https://finnhub.io/api/v1/covid19/us",
         "https://2019ncov.asia/api/country_region"]
 
         # Iterate through the fetched API data and stored in mysql Databases
-        def virustrackerApi(data):
-            dat=data['data']
-            for d in dat:
-                countrycode=d['countrycode']
-                date=d['date']
+        def novalCovidApi(data):
+            for d in data:
+                country=d['country']
+                tests=d['tests']
                 cases=d['cases']
                 deaths=d['deaths']
                 recovered=d['recovered']
-                new_data=CovidStatsCountry(countrycode,date,cases,deaths,recovered)
+                new_data=CovidStatsCountry(country,tests,cases,deaths,recovered)
                 db.session.add(new_data)
                 db.session.commit()
 
@@ -161,7 +160,7 @@ class FetchAPIData(Resource):
             # extracting data in json format 
             data = r.json()
             if count==0:
-                virustrackerApi(data)
+                novalCovidApi(data)
             if count==1:
                 finnhubApi(data)
             if count==2:

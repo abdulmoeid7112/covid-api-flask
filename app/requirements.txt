@@ -2,3 +2,4 @@ Flask
 flask_sqlalchemy
 mysqlclient
 flask-restful
+requests

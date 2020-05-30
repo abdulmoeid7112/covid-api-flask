@@ -1,11 +1,5 @@
-version: "2"
+version: "3"
 services:
-  app:
-    build: ./app
-    links:
-      - db
-    ports:
-      - "5000:5000"
   db:
     image: mysql:5.7
     ports:
@@ -14,3 +8,25 @@ services:
       MYSQL_ROOT_PASSWORD: root
     volumes:
       - ./db:/docker-entrypoint-initdb.d/:ro
+    networks:
+      - backend
+    tty: true
+  app:
+    build: ./app
+    links:
+      - db
+    ports:
+      - "5000:5000"
+    tty: true
+    networks:
+      - backend
+    depends_on:
+      - db
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://db"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+networks:
+  backend:

@@ -4,15 +4,15 @@ from app import db
 # Flask Model for all the countries Covid19 stats from the very first reported case
 class CovidStatsCountry(db.Model):
     id = db.Column(db.Integer, primary_key=True) 
-    countrycode = db.Column(db.String(15)) 
-    date = db.Column(db.String(10)) 
+    country = db.Column(db.String(15)) 
+    tests = db.Column(db.String(10)) 
     cases = db.Column(db.String(10)) 
     deaths = db.Column(db.String(10)) 
     recovered = db.Column(db.String(10)) 
 
-    def __init__(self,countrycode,date,cases,deaths,recovered):
-        self.countrycode=countrycode
-        self.date=date
+    def __init__(self,country,tests,cases,deaths,recovered):
+        self.country=country
+        self.tests=tests
         self.cases=cases
         self.deaths=deaths
         self.recovered=recovered
