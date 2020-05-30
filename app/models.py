@@ -1,4 +1,4 @@
-from . import db
+from app import db
 
 
 # Flask Model for all the countries Covid19 stats from the very first reported case
